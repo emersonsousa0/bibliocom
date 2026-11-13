@@ -98,13 +98,23 @@ async function executarSeed() {
         anoPublicacao: 1902,
         autor: autoresSalvos[6],
       },
+     
       {
         titulo: 'Auto da Compadecida',
         isbn: '9788520938474',
         anoPublicacao: 1955,
         autor: autoresSalvos[7],
       },
+
     ];
+    dadosObras.push(
+  ...Array.from({ length: 50 }, (_, i) => ({
+    titulo: `Obra de teste N1 ${String(i + 1).padStart(2, '0')}`,
+    isbn: null,
+    anoPublicacao: 2000 + (i % 25),
+    autor: autoresSalvos[i % autoresSalvos.length],
+  })),
+);
 
     const obrasSalvas: Obra[] = [];
 

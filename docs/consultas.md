@@ -19,7 +19,15 @@ const resultado = await obras.find({
 
 **SQL gerado:**
 
-_Preencher com o SQL registrado no terminal após executar `npm run db:consultas`._
+
+SELECT "Obra"."id", "Obra"."titulo", "Obra"."isbn",
+       "Obra"."ano_publicacao", "Obra"."autor_id",
+       "Obra__Obra_autor"."id", "Obra__Obra_autor"."nome"
+FROM "obras" "Obra"
+INNER JOIN "autores" "Obra__Obra_autor"
+ON "Obra__Obra_autor"."id" = "Obra"."autor_id"
+WHERE "Obra"."ano_publicacao" < $1;
+-- PARAMETERS: [1900]
 
 ### 2. Obras cujo título contém "sertão"
 
@@ -35,7 +43,14 @@ const resultado = await obras.find({
 
 **SQL gerado:**
 
-_Preencher após a execução._
+SELECT "Obra"."id", "Obra"."titulo", "Obra"."isbn",
+       "Obra"."ano_publicacao", "Obra"."autor_id",
+       "Obra__Obra_autor"."id", "Obra__Obra_autor"."nome"
+FROM "obras" "Obra"
+INNER JOIN "autores" "Obra__Obra_autor"
+ON "Obra__Obra_autor"."id" = "Obra"."autor_id"
+WHERE "Obra"."titulo" ILIKE $1;
+-- PARAMETERS: ["%sertão%"]
 
 ### 3. Obras de Machado de Assis
 
@@ -52,7 +67,14 @@ const resultado = await obras.find({
 
 **SQL gerado:**
 
-_Preencher após a execução._
+SELECT "Obra"."id", "Obra"."titulo", "Obra"."isbn",
+       "Obra"."ano_publicacao", "Obra"."autor_id",
+       "Obra__Obra_autor"."id", "Obra__Obra_autor"."nome"
+FROM "obras" "Obra"
+INNER JOIN "autores" "Obra__Obra_autor"
+ON "Obra__Obra_autor"."id" = "Obra"."autor_id"
+WHERE "Obra__Obra_autor"."nome" = $1;
+-- PARAMETERS: ["Machado de Assis"]
 
 ### 4. Exemplares desgastados ou descartados
 
@@ -74,7 +96,19 @@ const resultado = await exemplares.find({
 
 **SQL gerado:**
 
-_Preencher após a execução._
+SELECT "Exemplar"."id", "Exemplar"."tombo",
+       "Exemplar"."estado", "Exemplar"."data_aquisicao",
+       "Exemplar"."obra_id",
+       "Exemplar__Exemplar_obra"."id",
+       "Exemplar__Exemplar_obra"."titulo",
+       "Exemplar__Exemplar_obra"."isbn",
+       "Exemplar__Exemplar_obra"."ano_publicacao",
+       "Exemplar__Exemplar_obra"."autor_id"
+FROM "exemplares" "Exemplar"
+INNER JOIN "obras" "Exemplar__Exemplar_obra"
+ON "Exemplar__Exemplar_obra"."id" = "Exemplar"."obra_id"
+WHERE "Exemplar"."estado" IN ($1, $2);
+-- PARAMETERS: ["DESGASTADO", "DESCARTADO"]
 
 ### 5. Obras sem ISBN
 
@@ -91,7 +125,13 @@ const resultado = await obras.find({
 
 **SQL gerado:**
 
-_Preencher após a execução._
+SELECT "Obra"."id", "Obra"."titulo", "Obra"."isbn",
+       "Obra"."ano_publicacao", "Obra"."autor_id",
+       "Obra__Obra_autor"."id", "Obra__Obra_autor"."nome"
+FROM "obras" "Obra"
+INNER JOIN "autores" "Obra__Obra_autor"
+ON "Obra__Obra_autor"."id" = "Obra"."autor_id"
+WHERE "Obra"."isbn" IS NULL;
 
 ### 6. Dez obras mais recentes
 
@@ -108,7 +148,19 @@ const resultado = await obras.find({
 
 **SQL gerado:**
 
-_Preencher após a execução._
+SELECT DISTINCT "distinctAlias"."Obra_id",
+       "distinctAlias"."Obra_ano_publicacao"
+FROM (
+  SELECT "Obra"."id" AS "Obra_id",
+         "Obra"."ano_publicacao" AS "Obra_ano_publicacao"
+  FROM "obras" "Obra"
+  INNER JOIN "autores" "Obra__Obra_autor"
+  ON "Obra__Obra_autor"."id" = "Obra"."autor_id"
+) "distinctAlias"
+ORDER BY "distinctAlias"."Obra_ano_publicacao" DESC,
+         "Obra_id" ASC
+LIMIT 10;
+
 
 ### 7. Autores cujo nome começa com "Machado"
 
@@ -124,7 +176,10 @@ const resultado = await autores.find({
 
 **SQL gerado:**
 
-_Preencher após a execução._
+SELECT "Autor"."id", "Autor"."nome"
+FROM "autores" "Autor"
+WHERE "Autor"."nome" ILIKE $1;
+-- PARAMETERS: ["Machado%"]
 
 ### 8. Quantidade total de obras
 
@@ -138,8 +193,8 @@ const quantidade = await obras.count();
 
 **SQL gerado:**
 
-_Preencher após a execução._
-
+SELECT COUNT(1) AS "cnt"
+FROM "obras" "Obra";
 ---
 
 ## E06.2 — Problema N+1
@@ -170,15 +225,20 @@ const obras = await obrasRepository.find({
 
 ### Comparação de desempenho
 
-| Estratégia | Quantidade de consultas | Tempo |
+Foram utilizadas 50 obras para comparar as duas estratégias.
+
+| Estratégia | Quantidade de consultas SQL | Tempo |
 |---|---:|---:|
-| N+1 | Preencher após execução | Preencher após execução |
-| Otimizada | Preencher após execução | Preencher após execução |
+| N+1 | 51 | 12.442 ms |
+| Otimizada | 2 | 660 ms |
 
 **Análise dos resultados:**
 
-_Preencher após executar `npm run db:n1`, considerando a quantidade real de consultas SQL e os tempos registrados no terminal._
+A implementação N+1 realizou 51 consultas SQL: uma consulta inicial para buscar as 50 obras e outras 50 consultas individuais para buscar seus autores. O tempo registrado foi de 12.442 ms.
 
+Já a implementação otimizada utilizou o carregamento da relação com `relations`, realizando 2 consultas SQL e levando 660 ms.
+
+Nesta execução, a implementação otimizada foi aproximadamente 18,9 vezes mais rápida, demonstrando como reduzir consultas individuais pode melhorar o desempenho da aplicação.
 ---
 
 ## E06.3 — Relatórios com QueryBuilder
@@ -203,13 +263,12 @@ As consultas 5 e 6 possuem o mesmo objetivo, mas utilizam estratégias SQL difer
 
 | Estratégia | Autores encontrados | Tempo |
 |---|---:|---:|
-| LEFT JOIN + IS NULL | Preencher após execução | Preencher após execução |
-| NOT IN | Preencher após execução | Preencher após execução |
+| LEFT JOIN + IS NULL | 0 | 308 ms |
+| NOT IN | 0 | 221 ms |
 
 **Análise:**
 
-_Preencher após executar `npm run db:relatorios`, comparando os resultados e os tempos medidos._
-
+As duas consultas retornaram o mesmo resultado: nenhum autor sem obras cadastradas. A consulta utilizando LEFT JOIN + IS NULL apresentou tempo de 308 ms, enquanto a consulta com NOT IN apresentou 221 ms. Nesta execução, NOT IN foi mais rápida, mas essa diferença não significa que será sempre a melhor opção, pois o desempenho depende dos dados e do ambiente de execução.
 ---
 
 ## Observação sobre a execução
