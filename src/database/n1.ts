@@ -2,22 +2,42 @@
 import 'reflect-metadata';
 import 'dotenv/config';
 
+import { DataSource, Logger } from 'typeorm';
 import { AppDataSource } from './data-source.js';
 import { Obra } from '../obras/entities/obra.entity.js';
 import { Autor } from '../autores/entities/autor.entity.js';
 
 async function demonstrarN1() {
-  try {
-    await AppDataSource.initialize();
+  let quantidadeConsultas = 0;
 
-    const obrasRepository = AppDataSource.getRepository(Obra);
-    const autoresRepository = AppDataSource.getRepository(Autor);
+  const contador: Logger = {
+    logQuery() {
+      quantidadeConsultas++;
+    },
+    logQueryError() {},
+    logQuerySlow() {},
+    logSchemaBuild() {},
+    logMigration() {},
+    log() {},
+  };
+
+  const dataSource = new DataSource({
+    ...AppDataSource.options,
+    logger: contador,
+    logging: ['query'],
+  });
+
+  try {
+    await dataSource.initialize();
+
+    const obrasRepository = dataSource.getRepository(Obra);
+    const autoresRepository = dataSource.getRepository(Autor);
 
     console.log('\n========== E06.2 - PROBLEMA N+1 ==========\n');
 
-    // CENÁRIO 1: uma consulta para as obras e uma para cada autor.
     console.log('1. Implementação com problema N+1');
 
+    quantidadeConsultas = 0;
     const inicioRuim = Date.now();
 
     const obrasRuins = await obrasRepository
@@ -46,23 +66,21 @@ async function demonstrarN1() {
     }
 
     const tempoRuim = Date.now() - inicioRuim;
-    const consultasRuins = 1 + obrasRuins.length;
+    const consultasRuins = quantidadeConsultas;
 
     console.log(`Obras encontradas: ${obrasRuins.length}`);
-    console.log(`Consultas SQL: ${consultasRuins}`);
+    console.log(`Consultas SQL medidas: ${consultasRuins}`);
     console.log(`Tempo da implementação N+1: ${tempoRuim} ms`);
 
-    // CENÁRIO 2: obras e autores carregados com relacionamento.
     console.log('\n2. Implementação otimizada');
 
+    quantidadeConsultas = 0;
     const inicioBom = Date.now();
 
     const obrasBoas = await obrasRepository.find({
       take: 50,
       order: { id: 'ASC' },
-      relations: {
-        autor: true,
-      },
+      relations: { autor: true },
     });
 
     for (const obra of obrasBoas) {
@@ -72,29 +90,25 @@ async function demonstrarN1() {
     }
 
     const tempoBom = Date.now() - inicioBom;
-
-    // Com paginação e relacionamento, o TypeORM pode gerar
-    // duas consultas SQL: seleção dos IDs e carregamento dos dados.
-    const consultasBoas = 2;
+    const consultasBoas = quantidadeConsultas;
 
     console.log(`Obras encontradas: ${obrasBoas.length}`);
-    console.log(`Consultas SQL observadas: ${consultasBoas}`);
+    console.log(`Consultas SQL medidas: ${consultasBoas}`);
     console.log(`Tempo da implementação otimizada: ${tempoBom} ms`);
 
-    // COMPARAÇÃO
     console.log('\n========== COMPARAÇÃO ==========');
     console.log(`N+1: ${consultasRuins} consultas | ${tempoRuim} ms`);
     console.log(`Otimizada: ${consultasBoas} consultas | ${tempoBom} ms`);
 
     console.log(
-      '\nConfira também os comandos SQL registrados no terminal.',
+      '\nA contagem considera as consultas SQL registradas pelo TypeORM.',
     );
   } catch (erro) {
     console.error('Erro na demonstração N+1:', erro);
     process.exitCode = 1;
   } finally {
-    if (AppDataSource.isInitialized) {
-      await AppDataSource.destroy();
+    if (dataSource.isInitialized) {
+      await dataSource.destroy();
     }
   }
 }

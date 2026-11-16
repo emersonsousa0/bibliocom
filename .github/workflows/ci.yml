@@ -58,7 +58,7 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: npm run db:seed
 
-      - name: Popular Neon com volume para N+1
+      - name: Popular Neon com volume N+1
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: node --import tsx src/database/seed-volume.ts
