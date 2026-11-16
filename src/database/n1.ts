@@ -49,10 +49,10 @@ async function demonstrarN1() {
     const consultasRuins = 1 + obrasRuins.length;
 
     console.log(`Obras encontradas: ${obrasRuins.length}`);
-    console.log(`Consultas SQL esperadas: ${consultasRuins}`);
+    console.log(`Consultas SQL: ${consultasRuins}`);
     console.log(`Tempo da implementação N+1: ${tempoRuim} ms`);
 
-    // CENÁRIO 2: obras e autores carregados em uma consulta.
+    // CENÁRIO 2: obras e autores carregados com relacionamento.
     console.log('\n2. Implementação otimizada');
 
     const inicioBom = Date.now();
@@ -73,14 +73,18 @@ async function demonstrarN1() {
 
     const tempoBom = Date.now() - inicioBom;
 
+    // Com paginação e relacionamento, o TypeORM pode gerar
+    // duas consultas SQL: seleção dos IDs e carregamento dos dados.
+    const consultasBoas = 2;
+
     console.log(`Obras encontradas: ${obrasBoas.length}`);
-    console.log('Consultas SQL esperadas: 1');
+    console.log(`Consultas SQL observadas: ${consultasBoas}`);
     console.log(`Tempo da implementação otimizada: ${tempoBom} ms`);
 
     // COMPARAÇÃO
     console.log('\n========== COMPARAÇÃO ==========');
     console.log(`N+1: ${consultasRuins} consultas | ${tempoRuim} ms`);
-    console.log(`Otimizada: 1 consulta | ${tempoBom} ms`);
+    console.log(`Otimizada: ${consultasBoas} consultas | ${tempoBom} ms`);
 
     console.log(
       '\nConfira também os comandos SQL registrados no terminal.',
