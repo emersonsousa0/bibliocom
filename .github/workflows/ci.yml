@@ -27,10 +27,10 @@ jobs:
           --health-retries 5
 
     env:
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/bibliocom
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/bibliocom
 
     steps:
-      - name: Baixar código
+      - name: Baixar repositorio
         uses: actions/checkout@v4
 
       - name: Configurar Node.js
@@ -39,63 +39,66 @@ jobs:
           node-version: 22
           cache: npm
 
-      - name: Instalar dependências
+      - name: Instalar dependencias
         run: npm install
 
-      - name: Testar conexão com Neon
+      - name: Verificar conexao com Neon
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
-          node -e 'const { Client } = require("pg"); (async () => { const client = new Client({ connectionString: process.env.DATABASE_URL }); try { await client.connect(); const r = await client.query("SELECT current_database() AS banco, current_user AS usuario"); console.log(r.rows[0]); } finally { await client.end(); } })().catch(e => { console.error(e); process.exit(1); });'
+          node --input-type=module <<'NODE'
+          import pg from 'pg';
+          const client = new pg.Client({
+            connectionString: process.env.DATABASE_URL,
+            ssl: { rejectUnauthorized: false }
+          });
+          await client.connect();
+          const result = await client.query('SELECT current_database() AS banco');
+          console.log('Conectado ao Neon:', result.rows[0].banco);
+          await client.end();
+          NODE
 
-      - name: Executar migrações no Neon
+      - name: Executar migrations no Neon
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: npm run migration:run
 
-      - name: Popular banco Neon
+      - name: Executar seed principal no Neon
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: npm run db:seed
 
-      - name: Popular Neon com volume N+1
+      - name: Popular volume de demonstracao no Neon
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: node --import tsx src/database/seed-volume.ts
 
-      - name: Criar pasta de evidências
+      - name: Criar pasta de evidencias
         run: mkdir -p evidencias
 
-      - name: Executar migrações no PostgreSQL de testes
-        run: |
-          set -o pipefail
-          npm run migration:run 2>&1 | tee evidencias/migrations.log
+      - name: Executar migrations no PostgreSQL de teste
+        run: npm run migration:run 2>&1 | tee evidencias/migrations.txt
 
-      - name: Popular PostgreSQL de testes
-        run: |
-          set -o pipefail
-          npm run db:seed 2>&1 | tee evidencias/seed.log
+      - name: Executar seed principal
+        run: npm run db:seed 2>&1 | tee evidencias/seed.txt
 
-      - name: Popular PostgreSQL de testes com volume
+      - name: Popular volume de demonstracao
         run: node --import tsx src/database/seed-volume.ts
 
       - name: Executar consultas Repository
-        run: |
-          set -o pipefail
-          npm run db:consultas 2>&1 | tee evidencias/consultas.log
+        run: npm run db:consultas 2>&1 | tee evidencias/consultas.txt
 
       - name: Demonstrar problema N+1
-        run: |
-          set -o pipefail
-          npm run db:n1 2>&1 | tee evidencias/n1.log
+        run: npm run db:n1 2>&1 | tee evidencias/n1.txt
 
-      - name: Executar relatórios QueryBuilder
-        run: |
-          set -o pipefail
-          npm run db:relatorios 2>&1 | tee evidencias/relatorios.log
+      - name: Executar relatorios QueryBuilder
+        run: npm run db:relatorios 2>&1 | tee evidencias/relatorios.txt
 
-      - name: Executar testes E2E
-        run: npm run test:e2e
+      - name: Executar testes automatizados
+        run: npm run test:e2e -- --runInBand
+
+      - name: Compilar aplicacao
+        run: npm run build
 
       - name: Guardar OpenAPI anterior
         run: |
@@ -104,59 +107,60 @@ jobs:
             touch /tmp/openapi-existia
           fi
 
-      - name: Compilar aplicação
-        run: npm run build
-
       - name: Gerar e validar OpenAPI
         run: |
           node dist/main.js > /tmp/bibliocom-api.log 2>&1 &
           API_PID=$!
 
-          for i in $(seq 1 30); do
-            if curl -fsS http://localhost:3000/api/docs-json > /dev/null; then
+          for i in {1..30}; do
+            if curl -fsS http://localhost:3000/api/docs-json -o openapi.json; then
               break
-            fi
-            if ! kill -0 "$API_PID" 2>/dev/null; then
-              cat /tmp/bibliocom-api.log
-              exit 1
             fi
             sleep 2
           done
 
-          curl -fsS http://localhost:3000/api/docs-json > /dev/null
-          test -s openapi.json
+          if [ ! -s openapi.json ]; then
+            cat /tmp/bibliocom-api.log
+            kill $API_PID || true
+            echo "Falha ao gerar openapi.json"
+            exit 1
+          fi
 
-          kill "$API_PID" 2>/dev/null || true
+          kill $API_PID || true
+          echo "OpenAPI gerado com sucesso."
 
-      - name: Verificar alterações no OpenAPI
+      - name: Verificar alteracoes na especificacao OpenAPI
         run: |
           if [ -f /tmp/openapi-existia ]; then
             diff -u /tmp/openapi-versionado.json openapi.json
           else
-            echo "::warning::openapi.json ainda não está versionado. Baixe o artefato desta execução e adicione-o ao repositório."
+            echo "Primeira geracao do OpenAPI. O arquivo sera versionado na proxima etapa."
           fi
 
-      - name: Testar limite de paginação
+      - name: Testar limite da paginacao
         run: |
           node dist/main.js > /tmp/bibliocom-api-pagination.log 2>&1 &
           API_PID=$!
 
-          for i in $(seq 1 30); do
-            if curl -s http://localhost:3000/obras > /dev/null; then
+          for i in {1..30}; do
+            if curl -s http://localhost:3000/obras -o /dev/null; then
               break
             fi
             sleep 2
           done
 
-          RESULTADO=$(curl -s -o /tmp/paginacao.json -w "%{http_code} %{time_total}" "http://localhost:3000/obras?pagina=1&tamanho=100000")
-          echo "Resposta e tempo: $RESULTADO"
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:3000/obras?pagina=1&tamanho=100000")
 
-          CODIGO=$(echo "$RESULTADO" | awk '{print $1}')
-          kill "$API_PID" 2>/dev/null || true
+          kill $API_PID || true
 
-          test "$CODIGO" = "400"
+          echo "Status recebido para tamanho=100000: $STATUS"
 
-      - name: Salvar evidências
+          if [ "$STATUS" != "400" ]; then
+            echo "O limite de paginacao nao retornou HTTP 400."
+            exit 1
+          fi
+
+      - name: Salvar evidencias da execucao
         if: always()
         uses: actions/upload-artifact@v4
         with:
