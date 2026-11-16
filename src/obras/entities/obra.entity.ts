@@ -28,5 +28,5 @@ export class Obra {
   autor: Autor;
 
   @OneToMany(() => Exemplar, (exemplar) => exemplar.obra)
-  exemplares: Exemplar[];
+  exemplares: Relation<Exemplar[]>;
 }
