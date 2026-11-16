@@ -58,6 +58,11 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: npm run db:seed
 
+      - name: Popular Neon com volume para N+1
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: node --import tsx src/database/seed-volume.ts
+
       - name: Criar pasta de evidências
         run: mkdir -p evidencias
 
@@ -70,6 +75,11 @@ jobs:
         run: |
           set -o pipefail
           npm run db:seed 2>&1 | tee evidencias/seed.log
+
+      - name: Popular PostgreSQL de testes com volume N+1
+        run: |
+          set -o pipefail
+          node --import tsx src/database/seed-volume.ts
 
       - name: Executar consultas Repository
         run: |
