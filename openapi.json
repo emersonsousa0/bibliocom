@@ -1,0 +1,1231 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/alunos": {
+      "get": {
+        "operationId": "AppController_getAlunos",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "App"
+        ]
+      }
+    },
+    "/tarefas": {
+      "post": {
+        "operationId": "TarefasController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTarefaDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Tarefas"
+        ]
+      },
+      "get": {
+        "operationId": "TarefasController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Tarefas"
+        ]
+      }
+    },
+    "/tarefas/{id}": {
+      "get": {
+        "operationId": "TarefasController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Tarefas"
+        ]
+      },
+      "patch": {
+        "operationId": "TarefasController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTarefaDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Tarefas"
+        ]
+      },
+      "delete": {
+        "operationId": "TarefasController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Tarefas"
+        ]
+      }
+    },
+    "/categorias": {
+      "post": {
+        "operationId": "CategoriasController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCategoriaDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Categorias"
+        ]
+      },
+      "get": {
+        "operationId": "CategoriasController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Categorias"
+        ]
+      }
+    },
+    "/categorias/{id}": {
+      "get": {
+        "operationId": "CategoriasController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Categorias"
+        ]
+      },
+      "patch": {
+        "operationId": "CategoriasController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCategoriaDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Categorias"
+        ]
+      },
+      "delete": {
+        "operationId": "CategoriasController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Categorias"
+        ]
+      }
+    },
+    "/autores": {
+      "post": {
+        "operationId": "AutoresController_criar",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CriarAutorDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Autor cadastrado com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutorResposta"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos."
+          }
+        },
+        "summary": "Cadastrar um novo autor",
+        "tags": [
+          "Autores"
+        ]
+      },
+      "get": {
+        "operationId": "AutoresController_listar",
+        "parameters": [
+          {
+            "name": "pagina",
+            "required": false,
+            "in": "query",
+            "description": "Número da página desejada.",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "tamanho",
+            "required": false,
+            "in": "query",
+            "description": "Quantidade máxima de registros por página.",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10,
+              "example": 10,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista paginada de autores.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/RespostaPaginada"
+                    },
+                    {
+                      "properties": {
+                        "dados": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/AutorResposta"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parâmetros de paginação inválidos."
+          }
+        },
+        "summary": "Listar autores com paginação",
+        "tags": [
+          "Autores"
+        ]
+      }
+    },
+    "/autores/{id}": {
+      "get": {
+        "operationId": "AutoresController_buscarPorId",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identificador do autor",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Autor encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutorResposta"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ID inválido."
+          },
+          "404": {
+            "description": "Autor não encontrado."
+          }
+        },
+        "summary": "Buscar autor pelo ID",
+        "tags": [
+          "Autores"
+        ]
+      },
+      "patch": {
+        "operationId": "AutoresController_atualizar",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AtualizarAutorDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Autor atualizado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutorResposta"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos."
+          },
+          "404": {
+            "description": "Autor não encontrado."
+          }
+        },
+        "summary": "Atualizar dados de um autor",
+        "tags": [
+          "Autores"
+        ]
+      },
+      "delete": {
+        "operationId": "AutoresController_excluir",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Autor excluído com sucesso."
+          },
+          "404": {
+            "description": "Autor não encontrado."
+          }
+        },
+        "summary": "Excluir um autor",
+        "tags": [
+          "Autores"
+        ]
+      }
+    },
+    "/obras": {
+      "post": {
+        "operationId": "ObrasController_criar",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CriarObraDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Obra cadastrada com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObraResposta"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos."
+          },
+          "404": {
+            "description": "Autor informado não encontrado."
+          }
+        },
+        "summary": "Cadastrar uma nova obra",
+        "tags": [
+          "Obras"
+        ]
+      },
+      "get": {
+        "operationId": "ObrasController_listar",
+        "parameters": [
+          {
+            "name": "pagina",
+            "required": false,
+            "in": "query",
+            "description": "Número da página desejada.",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "tamanho",
+            "required": false,
+            "in": "query",
+            "description": "Quantidade máxima de registros por página.",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10,
+              "example": 10,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista paginada de obras.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/RespostaPaginada"
+                    },
+                    {
+                      "properties": {
+                        "dados": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/ObraResposta"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parâmetros de paginação inválidos."
+          }
+        },
+        "summary": "Listar obras com paginação",
+        "tags": [
+          "Obras"
+        ]
+      }
+    },
+    "/obras/{id}": {
+      "get": {
+        "operationId": "ObrasController_buscarPorId",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identificador da obra",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Obra encontrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObraResposta"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ID inválido."
+          },
+          "404": {
+            "description": "Obra não encontrada."
+          }
+        },
+        "summary": "Buscar obra pelo ID",
+        "tags": [
+          "Obras"
+        ]
+      },
+      "patch": {
+        "operationId": "ObrasController_atualizar",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AtualizarObraDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Obra atualizada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObraResposta"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos."
+          },
+          "404": {
+            "description": "Obra ou autor não encontrado."
+          }
+        },
+        "summary": "Atualizar uma obra",
+        "tags": [
+          "Obras"
+        ]
+      },
+      "delete": {
+        "operationId": "ObrasController_excluir",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Obra excluída com sucesso."
+          },
+          "404": {
+            "description": "Obra não encontrada."
+          }
+        },
+        "summary": "Excluir uma obra",
+        "tags": [
+          "Obras"
+        ]
+      }
+    },
+    "/exemplares": {
+      "post": {
+        "operationId": "ExemplaresController_criar",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CriarExemplarDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Exemplar cadastrado com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExemplarResposta"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos."
+          },
+          "404": {
+            "description": "Obra informada não encontrada."
+          },
+          "409": {
+            "description": "O tombo informado já está cadastrado."
+          }
+        },
+        "summary": "Cadastrar um novo exemplar",
+        "tags": [
+          "Exemplares"
+        ]
+      },
+      "get": {
+        "operationId": "ExemplaresController_listar",
+        "parameters": [
+          {
+            "name": "pagina",
+            "required": false,
+            "in": "query",
+            "description": "Número da página desejada.",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "tamanho",
+            "required": false,
+            "in": "query",
+            "description": "Quantidade máxima de registros por página.",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10,
+              "example": 10,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista paginada de exemplares.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/RespostaPaginada"
+                    },
+                    {
+                      "properties": {
+                        "dados": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/ExemplarResposta"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parâmetros de paginação inválidos."
+          }
+        },
+        "summary": "Listar exemplares com paginação",
+        "tags": [
+          "Exemplares"
+        ]
+      }
+    },
+    "/exemplares/{id}": {
+      "get": {
+        "operationId": "ExemplaresController_buscarPorId",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identificador do exemplar",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Exemplar encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExemplarResposta"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ID inválido."
+          },
+          "404": {
+            "description": "Exemplar não encontrado."
+          }
+        },
+        "summary": "Buscar exemplar pelo ID",
+        "tags": [
+          "Exemplares"
+        ]
+      },
+      "patch": {
+        "operationId": "ExemplaresController_atualizar",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AtualizarExemplarDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Exemplar atualizado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExemplarResposta"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos."
+          },
+          "404": {
+            "description": "Exemplar ou obra não encontrado."
+          },
+          "409": {
+            "description": "O tombo informado já está cadastrado."
+          }
+        },
+        "summary": "Atualizar um exemplar",
+        "tags": [
+          "Exemplares"
+        ]
+      },
+      "delete": {
+        "operationId": "ExemplaresController_excluir",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Exemplar excluído com sucesso."
+          },
+          "404": {
+            "description": "Exemplar não encontrado."
+          }
+        },
+        "summary": "Excluir um exemplar",
+        "tags": [
+          "Exemplares"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "BiblioCom API",
+    "description": "API para gerenciamento de autores, obras e exemplares de uma biblioteca.",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [
+    {
+      "name": "Autores",
+      "description": "Gerenciamento de autores"
+    },
+    {
+      "name": "Obras",
+      "description": "Gerenciamento de obras"
+    },
+    {
+      "name": "Exemplares",
+      "description": "Gerenciamento de exemplares"
+    }
+  ],
+  "servers": [],
+  "components": {
+    "schemas": {
+      "CreateTarefaDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "UpdateTarefaDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "CreateCategoriaDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "UpdateCategoriaDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "RespostaPaginada": {
+        "type": "object",
+        "properties": {
+          "dados": {
+            "description": "Registros retornados na página atual.",
+            "type": "array",
+            "items": {
+              "type": "array"
+            }
+          },
+          "total": {
+            "type": "number",
+            "description": "Quantidade total de registros encontrados.",
+            "example": 50
+          },
+          "pagina": {
+            "type": "number",
+            "description": "Número da página atual.",
+            "example": 1
+          },
+          "tamanho": {
+            "type": "number",
+            "description": "Quantidade de registros por página.",
+            "example": 10
+          },
+          "totalPaginas": {
+            "type": "number",
+            "description": "Quantidade total de páginas.",
+            "example": 5
+          }
+        },
+        "required": [
+          "dados",
+          "total",
+          "pagina",
+          "tamanho",
+          "totalPaginas"
+        ]
+      },
+      "AutorResposta": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "Identificador do autor.",
+            "example": 1
+          },
+          "nome": {
+            "type": "string",
+            "description": "Nome completo do autor.",
+            "example": "Machado de Assis"
+          }
+        },
+        "required": [
+          "id",
+          "nome"
+        ]
+      },
+      "CriarAutorDto": {
+        "type": "object",
+        "properties": {
+          "nome": {
+            "type": "string",
+            "description": "Nome completo do autor.",
+            "example": "Machado de Assis",
+            "minLength": 2,
+            "maxLength": 150
+          }
+        },
+        "required": [
+          "nome"
+        ]
+      },
+      "AtualizarAutorDto": {
+        "type": "object",
+        "properties": {
+          "nome": {
+            "type": "string",
+            "description": "Nome completo do autor.",
+            "example": "Machado de Assis",
+            "minLength": 2,
+            "maxLength": 150
+          }
+        }
+      },
+      "ObraResposta": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "Identificador da obra.",
+            "example": 1
+          },
+          "titulo": {
+            "type": "string",
+            "description": "Título da obra.",
+            "example": "Dom Casmurro"
+          },
+          "isbn": {
+            "type": "object",
+            "description": "ISBN da obra, quando disponível.",
+            "example": "9788535910663",
+            "nullable": true
+          },
+          "anoPublicacao": {
+            "type": "number",
+            "description": "Ano de publicação.",
+            "example": 1899
+          },
+          "autorNome": {
+            "type": "string",
+            "description": "Nome do autor relacionado à obra.",
+            "example": "Machado de Assis"
+          }
+        },
+        "required": [
+          "id",
+          "titulo",
+          "isbn",
+          "anoPublicacao",
+          "autorNome"
+        ]
+      },
+      "CriarObraDto": {
+        "type": "object",
+        "properties": {
+          "titulo": {
+            "type": "string",
+            "description": "Título da obra.",
+            "example": "Dom Casmurro",
+            "maxLength": 200
+          },
+          "isbn": {
+            "type": "object",
+            "description": "ISBN da obra. Pode ser nulo ou não informado.",
+            "example": "9788535910663",
+            "maxLength": 20,
+            "nullable": true
+          },
+          "anoPublicacao": {
+            "type": "number",
+            "description": "Ano de publicação da obra.",
+            "example": 1899,
+            "minimum": 1
+          },
+          "autorId": {
+            "type": "number",
+            "description": "ID do autor relacionado à obra.",
+            "example": 1,
+            "minimum": 1
+          }
+        },
+        "required": [
+          "titulo",
+          "anoPublicacao",
+          "autorId"
+        ]
+      },
+      "AtualizarObraDto": {
+        "type": "object",
+        "properties": {
+          "titulo": {
+            "type": "string",
+            "description": "Título da obra.",
+            "example": "Dom Casmurro",
+            "maxLength": 200
+          },
+          "isbn": {
+            "type": "object",
+            "description": "ISBN da obra. Pode ser nulo ou não informado.",
+            "example": "9788535910663",
+            "maxLength": 20,
+            "nullable": true
+          },
+          "anoPublicacao": {
+            "type": "number",
+            "description": "Ano de publicação da obra.",
+            "example": 1899,
+            "minimum": 1
+          },
+          "autorId": {
+            "type": "number",
+            "description": "ID do autor relacionado à obra.",
+            "example": 1,
+            "minimum": 1
+          }
+        }
+      },
+      "ExemplarResposta": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "Identificador do exemplar.",
+            "example": 1
+          },
+          "tombo": {
+            "type": "string",
+            "description": "Código de tombamento do exemplar.",
+            "example": "EX-001"
+          },
+          "estado": {
+            "type": "string",
+            "description": "Estado atual do exemplar.",
+            "enum": [
+              "DISPONIVEL",
+              "EMPRESTADO",
+              "DESGASTADO",
+              "DESCARTADO"
+            ],
+            "example": "DISPONIVEL"
+          },
+          "dataAquisicao": {
+            "type": "string",
+            "description": "Data de aquisição do exemplar.",
+            "example": "2025-03-15",
+            "format": "date"
+          },
+          "obraTitulo": {
+            "type": "string",
+            "description": "Título da obra à qual o exemplar pertence.",
+            "example": "Dom Casmurro"
+          }
+        },
+        "required": [
+          "id",
+          "tombo",
+          "estado",
+          "dataAquisicao",
+          "obraTitulo"
+        ]
+      },
+      "CriarExemplarDto": {
+        "type": "object",
+        "properties": {
+          "tombo": {
+            "type": "string",
+            "description": "Código de tombamento do exemplar. Aceita letras maiúsculas, números e hífen.",
+            "example": "EX-001",
+            "minLength": 3,
+            "maxLength": 20,
+            "pattern": "^[A-Z0-9-]+$"
+          },
+          "estado": {
+            "type": "string",
+            "description": "Estado atual de conservação ou disponibilidade do exemplar.",
+            "enum": [
+              "DISPONIVEL",
+              "EMPRESTADO",
+              "DESGASTADO",
+              "DESCARTADO"
+            ],
+            "example": "DISPONIVEL"
+          },
+          "dataAquisicao": {
+            "type": "string",
+            "description": "Data de aquisição do exemplar. Não pode ser uma data futura.",
+            "example": "2025-03-15",
+            "format": "date"
+          },
+          "obraId": {
+            "type": "number",
+            "description": "ID da obra à qual o exemplar pertence.",
+            "example": 1,
+            "minimum": 1
+          }
+        },
+        "required": [
+          "tombo",
+          "estado",
+          "dataAquisicao",
+          "obraId"
+        ]
+      },
+      "AtualizarExemplarDto": {
+        "type": "object",
+        "properties": {
+          "tombo": {
+            "type": "string",
+            "description": "Código de tombamento do exemplar. Aceita letras maiúsculas, números e hífen.",
+            "example": "EX-001",
+            "minLength": 3,
+            "maxLength": 20,
+            "pattern": "^[A-Z0-9-]+$"
+          },
+          "estado": {
+            "type": "string",
+            "description": "Estado atual de conservação ou disponibilidade do exemplar.",
+            "enum": [
+              "DISPONIVEL",
+              "EMPRESTADO",
+              "DESGASTADO",
+              "DESCARTADO"
+            ],
+            "example": "DISPONIVEL"
+          },
+          "dataAquisicao": {
+            "type": "string",
+            "description": "Data de aquisição do exemplar. Não pode ser uma data futura.",
+            "example": "2025-03-15",
+            "format": "date"
+          },
+          "obraId": {
+            "type": "number",
+            "description": "ID da obra à qual o exemplar pertence.",
+            "example": 1,
+            "minimum": 1
+          }
+        }
+      }
+    }
+  }
+}
