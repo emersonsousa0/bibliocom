@@ -17,13 +17,20 @@ describe('BiblioCom (e2e)', () => {
     await app.init();
   });
 
-  it('GET /api/docs-json deve disponibilizar a documentação OpenAPI', () => {
+  it('GET /autores deve retornar uma lista paginada', () => {
     return request(app.getHttpServer())
-      .get('/api/docs-json')
+      .get('/autores')
       .expect(200)
       .expect((response) => {
-        if (!response.body.openapi) {
-          throw new Error('Documentação OpenAPI não encontrada.');
+        if (
+          !response.body ||
+          !Array.isArray(response.body.dados) ||
+          typeof response.body.total !== 'number' ||
+          typeof response.body.pagina !== 'number' ||
+          typeof response.body.tamanho !== 'number' ||
+          typeof response.body.totalPaginas !== 'number'
+        ) {
+          throw new Error('Formato de resposta paginada invÃ¡lido.');
         }
       });
   });
