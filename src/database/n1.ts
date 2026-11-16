@@ -35,8 +35,6 @@ async function demonstrarN1() {
 
     console.log('\n========== E06.2 - PROBLEMA N+1 ==========\n');
 
-    console.log('1. Implementação com problema N+1');
-
     quantidadeConsultas = 0;
     const inicioRuim = Date.now();
 
@@ -70,9 +68,7 @@ async function demonstrarN1() {
 
     console.log(`Obras encontradas: ${obrasRuins.length}`);
     console.log(`Consultas SQL medidas: ${consultasRuins}`);
-    console.log(`Tempo da implementação N+1: ${tempoRuim} ms`);
-
-    console.log('\n2. Implementação otimizada');
+    console.log(`Tempo N+1: ${tempoRuim} ms`);
 
     quantidadeConsultas = 0;
     const inicioBom = Date.now();
@@ -94,15 +90,11 @@ async function demonstrarN1() {
 
     console.log(`Obras encontradas: ${obrasBoas.length}`);
     console.log(`Consultas SQL medidas: ${consultasBoas}`);
-    console.log(`Tempo da implementação otimizada: ${tempoBom} ms`);
+    console.log(`Tempo otimizado: ${tempoBom} ms`);
 
     console.log('\n========== COMPARAÇÃO ==========');
     console.log(`N+1: ${consultasRuins} consultas | ${tempoRuim} ms`);
     console.log(`Otimizada: ${consultasBoas} consultas | ${tempoBom} ms`);
-
-    console.log(
-      '\nA contagem considera as consultas SQL registradas pelo TypeORM.',
-    );
   } catch (erro) {
     console.error('Erro na demonstração N+1:', erro);
     process.exitCode = 1;

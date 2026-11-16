@@ -46,7 +46,7 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
-          node -e 'const { Client } = require("pg"); (async () => { const client = new Client({ connectionString: process.env.DATABASE_URL }); try { await client.connect(); const r = await client.query("SELECT current_database() AS banco, current_user AS usuario"); console.log("Conexão com Neon estabelecida!"); console.log(r.rows[0]); } finally { await client.end(); } })().catch(e => { console.error("Falha na conexão com Neon:", e.message); process.exit(1); });'
+          node -e 'const { Client } = require("pg"); (async () => { const client = new Client({ connectionString: process.env.DATABASE_URL }); try { await client.connect(); const r = await client.query("SELECT current_database() AS banco, current_user AS usuario"); console.log(r.rows[0]); } finally { await client.end(); } })().catch(e => { console.error(e); process.exit(1); });'
 
       - name: Executar migrações no Neon
         env:
@@ -76,10 +76,8 @@ jobs:
           set -o pipefail
           npm run db:seed 2>&1 | tee evidencias/seed.log
 
-      - name: Popular PostgreSQL de testes com volume N+1
-        run: |
-          set -o pipefail
-          node --import tsx src/database/seed-volume.ts
+      - name: Popular PostgreSQL de testes com volume
+        run: node --import tsx src/database/seed-volume.ts
 
       - name: Executar consultas Repository
         run: |
@@ -99,13 +97,71 @@ jobs:
       - name: Executar testes E2E
         run: npm run test:e2e
 
+      - name: Guardar OpenAPI anterior
+        run: |
+          if [ -f openapi.json ]; then
+            cp openapi.json /tmp/openapi-versionado.json
+            touch /tmp/openapi-existia
+          fi
+
       - name: Compilar aplicação
         run: npm run build
+
+      - name: Gerar e validar OpenAPI
+        run: |
+          node dist/main.js > /tmp/bibliocom-api.log 2>&1 &
+          API_PID=$!
+
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:3000/api/docs-json > /dev/null; then
+              break
+            fi
+            if ! kill -0 "$API_PID" 2>/dev/null; then
+              cat /tmp/bibliocom-api.log
+              exit 1
+            fi
+            sleep 2
+          done
+
+          curl -fsS http://localhost:3000/api/docs-json > /dev/null
+          test -s openapi.json
+
+          kill "$API_PID" 2>/dev/null || true
+
+      - name: Verificar alterações no OpenAPI
+        run: |
+          if [ -f /tmp/openapi-existia ]; then
+            diff -u /tmp/openapi-versionado.json openapi.json
+          else
+            echo "::warning::openapi.json ainda não está versionado. Baixe o artefato desta execução e adicione-o ao repositório."
+          fi
+
+      - name: Testar limite de paginação
+        run: |
+          node dist/main.js > /tmp/bibliocom-api-pagination.log 2>&1 &
+          API_PID=$!
+
+          for i in $(seq 1 30); do
+            if curl -s http://localhost:3000/obras > /dev/null; then
+              break
+            fi
+            sleep 2
+          done
+
+          RESULTADO=$(curl -s -o /tmp/paginacao.json -w "%{http_code} %{time_total}" "http://localhost:3000/obras?pagina=1&tamanho=100000")
+          echo "Resposta e tempo: $RESULTADO"
+
+          CODIGO=$(echo "$RESULTADO" | awk '{print $1}')
+          kill "$API_PID" 2>/dev/null || true
+
+          test "$CODIGO" = "400"
 
       - name: Salvar evidências
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: evidencias-bibliocom
-          path: evidencias/
+          path: |
+            evidencias/
+            openapi.json
           if-no-files-found: warn
