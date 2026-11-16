@@ -42,37 +42,6 @@ jobs:
       - name: Instalar dependencias
         run: npm install
 
-      - name: Verificar conexao com Neon
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: |
-          node --input-type=module <<'NODE'
-          import pg from 'pg';
-          const client = new pg.Client({
-            connectionString: process.env.DATABASE_URL,
-            ssl: { rejectUnauthorized: false }
-          });
-          await client.connect();
-          const result = await client.query('SELECT current_database() AS banco');
-          console.log('Conectado ao Neon:', result.rows[0].banco);
-          await client.end();
-          NODE
-
-      - name: Executar migrations no Neon
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: npm run migration:run
-
-      - name: Executar seed principal no Neon
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: npm run db:seed
-
-      - name: Popular volume de demonstracao no Neon
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: node --import tsx src/database/seed-volume.ts
-
       - name: Criar pasta de evidencias
         run: mkdir -p evidencias
 
@@ -111,6 +80,7 @@ jobs:
         run: |
           node dist/main.js > /tmp/bibliocom-api.log 2>&1 &
           API_PID=$!
+          trap 'kill $API_PID 2>/dev/null || true' EXIT
 
           for i in {1..30}; do
             if curl -fsS http://localhost:3000/api/docs-json -o openapi.json; then
@@ -121,12 +91,10 @@ jobs:
 
           if [ ! -s openapi.json ]; then
             cat /tmp/bibliocom-api.log
-            kill $API_PID || true
             echo "Falha ao gerar openapi.json"
             exit 1
           fi
 
-          kill $API_PID || true
           echo "OpenAPI gerado com sucesso."
 
       - name: Verificar alteracoes na especificacao OpenAPI
@@ -141,17 +109,26 @@ jobs:
         run: |
           node dist/main.js > /tmp/bibliocom-api-pagination.log 2>&1 &
           API_PID=$!
+          trap 'kill $API_PID 2>/dev/null || true' EXIT
+
+          API_PRONTA=false
 
           for i in {1..30}; do
-            if curl -s http://localhost:3000/obras -o /dev/null; then
+            if curl -fsS http://localhost:3000/obras -o /dev/null; then
+              API_PRONTA=true
               break
             fi
             sleep 2
           done
 
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:3000/obras?pagina=1&tamanho=100000")
+          if [ "$API_PRONTA" != "true" ]; then
+            cat /tmp/bibliocom-api-pagination.log
+            echo "A API nao iniciou corretamente."
+            exit 1
+          fi
 
-          kill $API_PID || true
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            "http://localhost:3000/obras?pagina=1&tamanho=100000")
 
           echo "Status recebido para tamanho=100000: $STATUS"
 
@@ -159,6 +136,48 @@ jobs:
             echo "O limite de paginacao nao retornou HTTP 400."
             exit 1
           fi
+
+      - name: Verificar conexao com Neon
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          node --input-type=module <<'NODE'
+          import pg from 'pg';
+
+          const client = new pg.Client({
+            connectionString: process.env.DATABASE_URL,
+            ssl: { rejectUnauthorized: false }
+          });
+
+          await client.connect();
+
+          const result = await client.query(
+            'SELECT current_database() AS banco'
+          );
+
+          console.log('Conectado ao Neon:', result.rows[0].banco);
+
+          await client.end();
+          NODE
+
+      - name: Executar migrations no Neon
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npm run migration:run
+
+      - name: Executar seed principal no Neon
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npm run db:seed
+
+      - name: Popular volume de demonstracao no Neon
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: node --import tsx src/database/seed-volume.ts
 
       - name: Salvar evidencias da execucao
         if: always()
