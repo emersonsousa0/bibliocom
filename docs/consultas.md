@@ -1,227 +1,96 @@
-# E06 — Consultas e relatórios com TypeORM
+# Consultas ao Banco de Dados — BiblioCom
 
-## E06.1 — Consultas com Repository
+## 1. Objetivo
 
-As consultas abaixo foram implementadas utilizando os métodos do Repository do TypeORM.
+Este documento apresenta as consultas realizadas no banco de dados PostgreSQL do BiblioCom, utilizando TypeORM. São demonstradas consultas com Repository, o problema N+1 e consultas personalizadas com QueryBuilder.
 
-### 1. Obras publicadas antes de 1900
+## 2. Consultas utilizando Repository
 
-**Objetivo:** localizar obras publicadas antes do ano 1900.
+As consultas abaixo utilizam os métodos do TypeORM para recuperar e filtrar informações do banco de dados.
 
-**Implementação:**
+| Nº | Consulta | Objetivo |
+|---|---|---|
+| 1 | Obras anteriores a 1900 | Buscar obras publicadas antes de 1900. |
+| 2 | Obras com título contendo "sertão" | Realizar busca textual nos títulos. |
+| 3 | Obras de Machado de Assis | Filtrar obras pelo autor. |
+| 4 | Exemplares desgastados ou descartados | Filtrar exemplares por estado. |
+| 5 | Obras sem ISBN | Identificar registros sem ISBN cadastrado. |
+| 6 | Dez obras mais recentes | Ordenar obras por ano de publicação. |
+| 7 | Autores com nome iniciado por "Machado" | Filtrar autores pelo início do nome. |
+| 8 | Total de obras cadastradas | Contabilizar os registros de obras. |
 
-```typescript
-const resultado = await obras.find({
-  where: { anoPublicacao: LessThan(1900) },
-  relations: { autor: true },
-});
-```
+## 3. Demonstração do problema N+1
 
-**SQL gerado:**
+O problema N+1 acontece quando uma consulta inicial recupera vários registros e, em seguida, uma nova consulta é executada individualmente para cada registro relacionado.
 
-_Preencher com o SQL registrado no terminal após executar `npm run db:consultas`._
+No BiblioCom, o exemplo utiliza obras e seus respectivos autores.
 
-### 2. Obras cujo título contém "sertão"
+### 3.1. Implementação com problema N+1
 
-**Objetivo:** localizar títulos que contenham a palavra "sertão", sem diferenciar letras maiúsculas e minúsculas.
+Primeiro, o sistema busca até 50 obras. Depois, executa uma consulta individual para localizar o autor de cada obra.
 
-**Implementação:**
+Considerando 50 obras:
 
-```typescript
-const resultado = await obras.find({
-  where: { titulo: ILike('%sertão%') },
-});
-```
+- 1 consulta para recuperar as obras;
+- 50 consultas para recuperar os autores;
+- Total: 51 consultas SQL.
 
-**SQL gerado:**
+### 3.2. Implementação otimizada
 
-_Preencher após a execução._
+A segunda implementação utiliza o método `find()` do Repository com o relacionamento `autor` carregado por meio de `relations`.
 
-### 3. Obras de Machado de Assis
+Essa abordagem reduz a quantidade de consultas necessárias. Na execução observada, o TypeORM gerou duas consultas SQL para carregar as obras e seus autores, utilizando uma consulta para selecionar os registros e outra para carregar os relacionamentos.
 
-**Objetivo:** buscar obras relacionadas ao autor Machado de Assis, carregando também os dados do autor.
+### 3.3. Comparação
 
-**Implementação:**
+| Implementação | Consultas SQL observadas |
+|---|---:|
+| Com problema N+1 (50 obras) | 51 |
+| Otimizada com relacionamento | 2 |
 
-```typescript
-const resultado = await obras.find({
-  where: { autor: { nome: 'Machado de Assis' } },
-  relations: { autor: true },
-});
-```
+A implementação otimizada reduz significativamente a quantidade de consultas ao banco de dados, evitando uma consulta individual para cada autor.
 
-**SQL gerado:**
+Os tempos de execução também são registrados pelo script, mas podem variar conforme o ambiente, a conexão e o estado do banco de dados.
 
-_Preencher após a execução._
+## 4. Consultas utilizando QueryBuilder
 
-### 4. Exemplares desgastados ou descartados
+O QueryBuilder permite construir consultas SQL personalizadas utilizando a API do TypeORM.
 
-**Objetivo:** localizar exemplares nos estados DESGASTADO ou DESCARTADO.
-
-**Implementação:**
-
-```typescript
-const resultado = await exemplares.find({
-  where: {
-    estado: In([
-      EstadoExemplar.DESGASTADO,
-      EstadoExemplar.DESCARTADO,
-    ]),
-  },
-  relations: { obra: true },
-});
-```
-
-**SQL gerado:**
-
-_Preencher após a execução._
-
-### 5. Obras sem ISBN
-
-**Objetivo:** localizar obras cujo ISBN não foi informado.
-
-**Implementação:**
-
-```typescript
-const resultado = await obras.find({
-  where: { isbn: IsNull() },
-  relations: { autor: true },
-});
-```
-
-**SQL gerado:**
-
-_Preencher após a execução._
-
-### 6. Dez obras mais recentes
-
-**Objetivo:** listar as dez obras com publicação mais recente.
-
-**Implementação:**
-
-```typescript
-const resultado = await obras.find({
-  take: 10,
-  order: { anoPublicacao: 'DESC' },
-});
-```
-
-**SQL gerado:**
-
-_Preencher após a execução._
-
-### 7. Autores cujo nome começa com "Machado"
-
-**Objetivo:** localizar autores cujos nomes começam com Machado.
-
-**Implementação:**
-
-```typescript
-const resultado = await autores.find({
-  where: { nome: ILike('Machado%') },
-});
-```
-
-**SQL gerado:**
-
-_Preencher após a execução._
-
-### 8. Quantidade total de obras
-
-**Objetivo:** obter a quantidade total de registros da tabela de obras.
-
-**Implementação:**
-
-```typescript
-const quantidade = await obras.count();
-```
-
-**SQL gerado:**
-
-_Preencher após a execução._
-
----
-
-## E06.2 — Problema N+1
-
-O problema N+1 acontece quando uma consulta inicial busca uma lista de registros e, em seguida, uma nova consulta é realizada individualmente para cada registro relacionado.
-
-Na implementação deste projeto, primeiro são listadas as obras e depois é feita uma consulta para buscar o autor de cada uma.
-
-### Implementação com N+1
-
-Arquivo: `src/database/n1.ts`.
-
-A estratégia realiza uma consulta inicial para buscar as obras e uma consulta adicional para cada autor relacionado.
-
-### Implementação otimizada
-
-A solução utiliza o carregamento da relação com `relations`, permitindo buscar as obras e seus autores juntos.
-
-```typescript
-const obras = await obrasRepository.find({
-  take: 50,
-  order: { id: 'ASC' },
-  relations: {
-    autor: true,
-  },
-});
-```
-
-### Comparação de desempenho
-
-| Estratégia | Quantidade de consultas | Tempo |
-|---|---:|---:|
-| N+1 | Preencher após execução | Preencher após execução |
-| Otimizada | Preencher após execução | Preencher após execução |
-
-**Análise dos resultados:**
-
-_Preencher após executar `npm run db:n1`, considerando a quantidade real de consultas SQL e os tempos registrados no terminal._
-
----
-
-## E06.3 — Relatórios com QueryBuilder
-
-Os relatórios foram implementados utilizando o QueryBuilder do TypeORM.
+Foram implementados os seguintes relatórios:
 
 1. Quantidade de obras por ano de publicação.
 2. Quantidade de obras por autor.
 3. Quantidade de exemplares por estado.
-4. Obras com seus autores e quantidade de exemplares.
+4. Quantidade de exemplares por obra.
 5. Autores sem obras utilizando `LEFT JOIN` e `IS NULL`.
-6. Autores sem obras utilizando `NOT IN` com subconsulta.
+6. Autores sem obras utilizando `NOT IN`.
 
-### Comparação: LEFT JOIN × NOT IN
+## 5. Resultados observados
 
-As consultas 5 e 6 possuem o mesmo objetivo, mas utilizam estratégias SQL diferentes.
+Na base de demonstração, foram identificados:
 
-- `LEFT JOIN` com `IS NULL` identifica autores que não possuem obras relacionadas.
-- `NOT IN` utiliza uma subconsulta para excluir os autores que aparecem na tabela de obras.
+- 9 autores cadastrados;
+- 11 obras cadastradas no Neon;
+- 10 exemplares cadastrados no Neon.
 
-**Resultados e tempos:**
+A base contém também uma edição atualizada de Dom Casmurro, além das obras previstas no seed.
 
-| Estratégia | Autores encontrados | Tempo |
-|---|---:|---:|
-| LEFT JOIN + IS NULL | Preencher após execução | Preencher após execução |
-| NOT IN | Preencher após execução | Preencher após execução |
+## 6. Como executar as demonstrações
 
-**Análise:**
+Os scripts devem ser executados em um ambiente compatível com a versão do Node.js e as dependências do projeto.
 
-_Preencher após executar `npm run db:relatorios`, comparando os resultados e os tempos medidos._
-
----
-
-## Observação sobre a execução
-
-O projeto utiliza TypeORM com PostgreSQL e logging SQL habilitado.
-
-Os comandos utilizados para executar as consultas são:
+Comandos disponíveis:
 
 ```bash
-npm run db:consultas
+npm run db:seed
 npm run db:n1
-npm run db:relatorios
+npm run db:consultas
 ```
 
-Os comandos devem ser executados com o banco de dados acessível. Os SQLs e tempos apresentados neste documento devem corresponder aos resultados reais da execução.
+As consultas SQL e os resultados são apresentados no terminal durante a execução.
+
+## 7. Conclusão
+
+As consultas com Repository e QueryBuilder permitem recuperar e analisar os dados do BiblioCom de diferentes maneiras.
+
+A demonstração do problema N+1 evidencia como consultas individuais para registros relacionados podem aumentar o número de operações no banco de dados. O carregamento dos relacionamentos pelo TypeORM reduz essa quantidade e melhora a eficiência do acesso aos dados.
