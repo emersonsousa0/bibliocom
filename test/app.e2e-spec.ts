@@ -1,13 +1,14 @@
+
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module.js';
 
-describe('AppController (e2e)', () => {
+describe('BiblioCom (e2e)', () => {
   let app: INestApplication<App>;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
@@ -16,14 +17,18 @@ describe('AppController (e2e)', () => {
     await app.init();
   });
 
-  it('/ (GET)', () => {
+  it('GET /api/docs-json deve disponibilizar a documentação OpenAPI', () => {
     return request(app.getHttpServer())
-      .get('/')
+      .get('/api/docs-json')
       .expect(200)
-      .expect('Hello World!');
+      .expect((response) => {
+        if (!response.body.openapi) {
+          throw new Error('Documentação OpenAPI não encontrada.');
+        }
+      });
   });
 
-  afterEach(async () => {
+  afterAll(async () => {
     await app.close();
   });
 });
