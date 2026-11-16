@@ -42,11 +42,34 @@ jobs:
       - name: Instalar dependências
         run: npm install
 
+      - name: Criar pasta de evidências
+        run: mkdir -p evidencias
+
       - name: Executar migrações
-        run: npm run migration:run
+        run: npm run migration:run 2>&1 | tee evidencias/migrations.log
+
+      - name: Popular banco de dados
+        run: npm run db:seed 2>&1 | tee evidencias/seed.log
+
+      - name: Executar consultas Repository
+        run: npm run db:consultas 2>&1 | tee evidencias/consultas.log
+
+      - name: Demonstrar problema N+1
+        run: npm run db:n1 2>&1 | tee evidencias/n1.log
+
+      - name: Executar relatórios QueryBuilder
+        run: npm run db:relatorios 2>&1 | tee evidencias/relatorios.log
 
       - name: Executar testes E2E
         run: npm run test:e2e
 
       - name: Compilar aplicação
         run: npm run build
+
+      - name: Salvar evidências
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidencias-bibliocom
+          path: evidencias/
+          if-no-files-found: warn

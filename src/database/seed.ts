@@ -27,6 +27,7 @@ async function executarSeed() {
       'Clarice Lispector',
       'Euclides da Cunha',
       'Ariano Suassuna',
+      'Autor sem obras',
     ];
 
     const autoresSalvos: Autor[] = [];
