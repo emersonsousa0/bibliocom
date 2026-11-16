@@ -95,7 +95,7 @@ jobs:
         run: npm run db:relatorios 2>&1 | tee evidencias/relatorios.txt
 
       - name: Executar testes automatizados
-        run: npm run test:e2e -- --runInBand
+        run: npm run test:e2e
 
       - name: Compilar aplicacao
         run: npm run build
