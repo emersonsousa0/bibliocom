@@ -1,4 +1,5 @@
-﻿import {
+﻿
+import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
@@ -6,6 +7,8 @@
   JoinColumn,
   RelationId,
 } from 'typeorm';
+
+import type { Relation } from 'typeorm';
 import { Obra } from '../../obras/entities/obra.entity.js';
 import { EstadoExemplar } from './estado-exemplar.enum.js';
 
@@ -29,7 +32,7 @@ export class Exemplar {
 
   @ManyToOne(() => Obra, (obra) => obra.exemplares, { nullable: false })
   @JoinColumn({ name: 'obra_id' })
-  obra: Obra;
+  obra: Relation<Obra>;
 
   @RelationId((exemplar: Exemplar) => exemplar.obra)
   obraId: number;

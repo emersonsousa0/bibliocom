@@ -6,9 +6,9 @@ import {
   ManyToOne,
   OneToMany,
   JoinColumn,
-  Relation,
 } from 'typeorm';
 
+import type { Relation } from 'typeorm';
 import { Autor } from '../../autores/entities/autor.entity.js';
 import { Exemplar } from '../../exemplares/entities/exemplar.entity.js';
 
