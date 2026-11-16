@@ -72,7 +72,7 @@ jobs:
       - name: Guardar OpenAPI anterior
         run: |
           if [ -f openapi.json ]; then
-            cp openapi.json /tmp/openapi-versionado.json
+            jq -S . openapi.json > /tmp/openapi-versionado.json
             touch /tmp/openapi-existia
           fi
 
@@ -95,7 +95,10 @@ jobs:
             exit 1
           fi
 
-          echo "OpenAPI gerado com sucesso."
+          jq -S . openapi.json > /tmp/openapi-formatado.json
+          mv /tmp/openapi-formatado.json openapi.json
+
+          echo "OpenAPI gerado e formatado com sucesso."
 
       - name: Verificar alteracoes na especificacao OpenAPI
         run: |
