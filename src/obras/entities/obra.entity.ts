@@ -1,11 +1,14 @@
-﻿import {
+﻿
+import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
   ManyToOne,
   OneToMany,
   JoinColumn,
+  Relation,
 } from 'typeorm';
+
 import { Autor } from '../../autores/entities/autor.entity.js';
 import { Exemplar } from '../../exemplares/entities/exemplar.entity.js';
 
@@ -25,7 +28,7 @@ export class Obra {
 
   @ManyToOne(() => Autor, (autor) => autor.obras, { nullable: false })
   @JoinColumn({ name: 'autor_id' })
-  autor: Autor;
+  autor: Relation<Autor>;
 
   @OneToMany(() => Exemplar, (exemplar) => exemplar.obra)
   exemplares: Relation<Exemplar[]>;
